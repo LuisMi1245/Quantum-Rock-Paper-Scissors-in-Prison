@@ -1,0 +1,3 @@
+qiskit>=2.5.2,<3.0.0
+# Qollab's JS / Qiskit wrapper supplies Qiskit 2.x and the selected `backend`.
+# No qiskit-aer, MediaPipe, OpenCV, external services or API keys are required.

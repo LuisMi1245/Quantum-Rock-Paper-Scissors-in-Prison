@@ -1,0 +1,134 @@
+<head>
+<link rel="stylesheet" href="main.css">
+<script type="module" src="main.js"></script>
+</head>
+<body>
+<section id="intro" class="screen active">
+  <div class="intro-content">
+    <div class="eyebrow">QISKIT × QUANTUM GAME THEORY</div>
+    <h1 class="title">QUANTUM ROCK, PAPER, SCISSORS<br><div class="shoot">In Prison!</div></h1>
+    <div class="cards" aria-label="Piedra, papel y tijeras">
+      <div class="iconcard">✊</div><div class="iconcard">✋</div><div class="iconcard">✌</div>
+    </div>
+    <p class="sub">15 rounds. Random pacts. A quantum opponent with a hidden personality.</p>
+    <div class="mode-picker">
+      <label for="executionMode">EXECUTION MODE</label>
+      <select id="executionMode">
+        <option value="batch" selected>FULL MATCH / ONE QUANTUM JOB (IONQ)</option>
+        <option value="live">ROUND BY ROUND / LOCAL SIMULATORS</option>
+      </select>
+      <p id="modeHelp">Choose all 15 moves, then execute all 15 circuits in one job. Compatible with IonQ's one-job-per-run limit.</p>
+    </div>
+    <button class="arcade" id="start">START MATCH ▶</button>
+    <div class="start-note">QOLLAB EDITION · MANUAL INPUT · QISKIT BACKEND</div>
+  </div>
+  <div class="sponsors"><span>◉ QISKIT</span><span>⬡ IONQ</span><span>◈ QOLLAB</span></div>
+</section>
+
+<section id="game" class="screen">
+  <header class="head">
+    <div class="player">
+      <div class="avatar">🧑🏻‍🚀</div><div><strong>PLAYER 1</strong><div class="score">POINTS: <b id="ps">0</b></div></div>
+    </div>
+    <h1 class="game-title">VS.</h1>
+    <div class="player bot">
+      <div><strong>Q-BOT</strong><div class="score">POINTS: <b id="bs">0</b></div></div><div class="avatar">🤖</div>
+    </div>
+  </header>
+
+  <section id="qaAgreementPanel" class="agreement-panel">
+    <div class="agreement-main">
+      <div class="agreement-symbol" id="agreementEmoji">🎲</div>
+      <div><div class="agreement-label">PACT / CURRENT AGREEMENT</div><div class="agreement-name" id="agreementName">LOADING…</div><div class="muted" id="agreementRound">A new pact is selected at random each round.</div></div>
+    </div>
+    <div class="agreement-actions" id="agreementActions">
+      <div class="action-chip coop"><strong>COOPERATE</strong><span>Match the agreement.</span></div>
+      <div class="action-chip betray"><strong>BETRAY</strong><span>Beat the agreement.</span></div>
+      <div class="action-chip neutral"><strong>NEUTRAL</strong><span>Lose to the agreement.</span></div>
+    </div>
+    <div class="scoring-note">SCORING: mutual cooperation +3 each · mutual betrayal +1 each · if at least one betrays, winner gets +5 · all other outcomes 0.</div>
+  </section>
+
+  <div class="grid">
+    <section>
+      <h2 class="section"><span class="cyan">01A /</span> PLAYER 1 DECISION</h2>
+      <div class="frame playerframe">
+        <div class="moves">
+          <div><button class="move" data-m="rock" aria-label="Choose rock">✊</button><div class="move-label">ROCK</div></div>
+          <div><button class="move" data-m="paper" aria-label="Choose paper">✋</button><div class="move-label">PAPER</div></div>
+          <div><button class="move" data-m="scissors" aria-label="Choose scissors">✌</button><div class="move-label">SCISSORS</div></div>
+        </div>
+        <div class="character" id="playerCharacter">🧑🏻‍🚀</div>
+        <div class="prob">
+          <div class="cyan prob-heading">Q-BOT<br>POLICY</div>
+          <div class="prob-label">COOP.</div><div class="bar"><span id="pcBar"></span></div><div class="pct" id="pcPct">33.3%</div>
+          <div class="prob-label">BETRAY</div><div class="bar betrayal-bar"><span id="ptBar"></span></div><div class="pct" id="ptPct">33.3%</div>
+          <div class="prob-label">NEUTRAL</div><div class="bar neutral-bar"><span id="pnBar"></span></div><div class="pct" id="pnPct">33.3%</div>
+        </div>
+        <div class="playerstatus">PLAYER 1<span id="playerState">Choose a symbol</span></div>
+      </div>
+    </section>
+
+    <section>
+      <h2 class="section"><span class="cyan">01B /</span> QUANTUM OPPONENT</h2>
+      <div class="frame botframe">
+        <div class="robot">🤖</div><div class="botname">Q-BOT 3000</div>
+        <div class="botstate" id="botState">PERSONALITY UNKNOWN</div>
+        <div class="machine-move" id="machineMove">AWAITING MEASUREMENT</div>
+        <div class="measurement" id="measurementState">Measurement: —</div>
+        <div class="status-pill" id="backendStatus">QISKIT BACKEND READY</div>
+      </div>
+    </section>
+
+    <section class="historypanel">
+      <h2 class="section"><span class="pink">04 /</span> ROUND HISTORY</h2>
+      <div class="historyframe">
+        <table class="historytable">
+          <thead><tr><th>RND</th><th>PACT</th><th>PLAYER</th><th>Q-BOT</th><th>PTS P/B</th></tr></thead>
+          <tbody id="historyBody"><tr><td colspan="5" class="empty-row">No rounds yet.</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+
+  <section class="circuit-section">
+    <div class="circuit-header"><h2 class="section"><span class="cyan">02 /</span> THE QUANTUM DECISION CIRCUIT</h2><span class="circuit-tag">2 QUBITS · 1 SHOT / CIRCUIT</span></div>
+    <p class="circuit-intro">The circuit encodes the current policy as amplitudes. Measurement returns a two-bit state: <b>|00⟩ = rock</b>, <b>|01⟩ = paper</b>, <b>|10⟩ = scissors</b>. State |11⟩ has zero ideal amplitude; on a noisy backend it is handled with a documented fallback.</p>
+    <div id="circuitDiagram" class="circuit-diagram" aria-label="Circuit gate sequence"></div>
+    <div class="circuit-math" id="circuitMath">θ and φ are calculated from Q-BOT's current symbol probabilities.</div>
+  </section>
+
+  <section class="stats-section">
+    <h2 class="section">03 / STRATEGY HISTORY</h2>
+    <div class="statsframe"><div class="statsheading">PLAYER ACTIONS</div><div class="dots" id="playerDots"></div><div class="statsheading">Q-BOT ACTIONS</div><div class="dots" id="botDots"></div></div>
+  </section>
+
+  <div class="bottom">
+    <div class="hint" id="roundLabel">ROUND 1 / 15 — Choose your move</div>
+    <div class="bottom-actions">
+      <button class="arcade secondary" id="newAgreement" type="button" hidden>SKIP AGREEMENT ↻</button>
+      <button class="arcade" id="runBatch" type="button" hidden>EXECUTE QUANTUM MATCH ▶</button>
+      <button class="arcade" id="finishMatch" type="button" hidden>GUESS Q-BOT ▸</button>
+      <button class="arcade secondary" id="backToIntro" type="button">NEW MATCH</button>
+    </div>
+  </div>
+  <div id="notice" class="notice" role="status" aria-live="polite">Ready. Choose an action for the current agreement.</div>
+</section>
+
+<section id="ending" class="screen ending-screen">
+  <div class="eyebrow">MATCH COMPLETE</div>
+  <h1 class="endtitle" id="endtitle">15 ROUNDS COMPLETE</h1>
+  <div class="endscore" id="endscore"></div>
+  <div class="guess-panel" id="guessPanel">
+    <div class="guess-title">FINAL TEST / GUESS THE SECRET PERSONALITY</div>
+    <p>What strategy did Q-BOT follow throughout the match?</p>
+    <div class="guess-options">
+      <button class="arcade" data-personality="indiferente">INDIFFERENT</button>
+      <button class="arcade" data-personality="reciproco">RECIPROCAL</button>
+      <button class="arcade" data-personality="rencoroso">RESENTFUL</button>
+    </div>
+    <div id="guessResult" role="status" aria-live="polite">Correct guess: +15 bonus points.</div>
+  </div>
+  <button class="arcade" id="restart">PLAY AGAIN ▶</button>
+</section>
+</body>
