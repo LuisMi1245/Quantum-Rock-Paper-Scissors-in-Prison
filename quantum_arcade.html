@@ -1,0 +1,899 @@
+<!doctype html>
+<html lang="es">
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Quantum Arcade</title>
+  <style>
+    :root {
+      --bg: #100b26;
+      --cream: #fff0ce;
+      --pink: #f04be8;
+      --cyan: #47f3ff;
+      --yellow: #ffd34f;
+      --green: #35f16c;
+      --red: #ff3857
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    body {
+      margin: 0;
+      background: #100b26;
+      color: var(--cream);
+      font-family: 'Share Tech Mono', monospace;
+      background-image: linear-gradient(90deg, #48265c55 1px, transparent 1px), linear-gradient(#48265c55 1px, transparent 1px), radial-gradient(ellipse, #1a1034 0, #100b26 70%);
+      background-size: 12px 12px, 12px 12px, auto
+    }
+
+    button {
+      cursor: pointer;
+      font: inherit
+    }
+
+    button:focus-visible {
+      outline: 3px solid white
+    }
+
+    h1,
+    h2,
+    .pixel {
+      font-family: 'Press Start 2P', monospace;
+      line-height: 1.7;
+      font-weight: 400
+    }
+
+    .screen {
+      display: none;
+      min-height: 100vh;
+      position: relative;
+      padding: 24px
+    }
+
+    .screen.active {
+      display: flex
+    }
+
+    #intro,
+    #ending {
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      flex-direction: column
+    }
+
+    #intro {
+      padding-bottom: 75px
+    }
+
+    .title {
+      font-size: clamp(24px, 5.5vw, 58px);
+      text-shadow: 5px 5px #4a2458, 9px 9px #070510;
+      margin: 0
+    }
+
+    .shoot {
+      font: clamp(22px, 3vw, 36px) 'Press Start 2P';
+      color: var(--yellow);
+      text-shadow: 4px 4px #6e3a16;
+      margin: 0 0 35px
+    }
+
+    .cards {
+      display: flex;
+      gap: clamp(14px, 5vw, 68px);
+      justify-content: center;
+      margin-bottom: 30px
+    }
+
+    .iconcard {
+      width: clamp(100px, 13vw, 160px);
+      aspect-ratio: 1;
+      border: 4px solid var(--pink);
+      box-shadow: 7px 7px #070510;
+      background: #1a1034;
+      display: grid;
+      place-items: center;
+      font-size: clamp(55px, 7vw, 88px)
+    }
+
+    .iconcard:nth-child(2) {
+      border-color: var(--cyan)
+    }
+
+    .iconcard:nth-child(3) {
+      border-color: #73529b
+    }
+
+    .sub {
+      font-size: clamp(16px, 2.2vw, 25px);
+      margin: 12px 0 28px
+    }
+
+    .arcade {
+      font: clamp(13px, 1.7vw, 19px) 'Press Start 2P';
+      padding: 22px 30px;
+      border: 0;
+      border-radius: 4px;
+      background: var(--yellow);
+      color: #251432;
+      box-shadow: 0 7px #9b5d25, 0 10px #070510
+    }
+
+    .arcade:active {
+      transform: translateY(5px);
+      box-shadow: 0 2px #9b5d25
+    }
+
+    .sponsors {
+      position: absolute;
+      bottom: 17px;
+      left: 22px;
+      right: 22px;
+      display: flex;
+      justify-content: space-between;
+      font: 20px Arial;
+      color: #ddd
+    }
+
+    #game {
+      flex-direction: column;
+      gap: 18px;
+      background: #100b26dd
+    }
+
+    .head {
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      align-items: center;
+      gap: 16px
+    }
+
+    .player {
+      border: 3px solid var(--pink);
+      padding: 8px 12px;
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      box-shadow: 0 0 15px #f04be833
+    }
+
+    .player.bot {
+      border-color: var(--cyan);
+      justify-content: flex-end;
+      text-align: right;
+      box-shadow: 0 0 15px #47f3ff33
+    }
+
+    .avatar {
+      width: 52px;
+      height: 52px;
+      display: grid;
+      place-items: center;
+      font-size: 31px;
+      background: #251344;
+      border: 2px solid currentColor
+    }
+
+    .player strong {
+      font: clamp(9px, 1vw, 14px) 'Press Start 2P';
+      color: var(--pink);
+      line-height: 1.8
+    }
+
+    .bot strong {
+      color: var(--cyan)
+    }
+
+    .score {
+      font-size: 18px
+    }
+
+    .game-title {
+      font-size: clamp(12px, 2.2vw, 27px);
+      text-align: center;
+      white-space: nowrap;
+      text-shadow: 3px 3px #632c8a;
+      margin: 0
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: 1.08fr .9fr 1.08fr;
+      gap: 18px
+    }
+
+    .section {
+      font: clamp(9px, 1.1vw, 14px) 'Press Start 2P';
+      margin: 0 0 10px;
+      line-height: 1.8
+    }
+
+    .cyan {
+      color: var(--cyan)
+    }
+
+    .pink {
+      color: var(--pink)
+    }
+
+    .frame {
+      height: 330px;
+      border: 2px solid var(--cyan);
+      padding: 12px;
+      background: #1a1034e8
+    }
+
+    .playerframe {
+      border-color: var(--pink);
+      display: grid;
+      grid-template-columns: 64px 1fr 75px;
+      gap: 8px;
+      align-items: center
+    }
+
+    .moves {
+      display: grid;
+      gap: 9px
+    }
+
+    .move {
+      width: 58px;
+      height: 58px;
+      background: #10102b;
+      border: 2px solid var(--cyan);
+      color: white;
+      font-size: 32px;
+      box-shadow: 0 0 9px #47f3ff44
+    }
+
+    .move.selected,
+    .move:hover {
+      outline: 2px solid var(--pink);
+      background: #35204f
+    }
+
+    .move-label {
+      text-align: center;
+      font-size: 13px
+    }
+
+    .character {
+      text-align: center;
+      font-size: clamp(60px, 7vw, 100px);
+      filter: drop-shadow(4px 4px #6a347b)
+    }
+
+    .prob {
+      text-align: center;
+      font-size: 13px;
+      line-height: 1.5
+    }
+
+    .pct {
+      font-size: 21px;
+      margin-top: 6px
+    }
+
+    .playerstatus {
+      grid-column: 1/4;
+      text-align: center;
+      font: 12px 'Press Start 2P';
+      line-height: 1.8
+    }
+
+    .playerstatus span {
+      display: block;
+      color: var(--pink)
+    }
+
+    .botframe {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center
+    }
+
+    .robot {
+      font-size: clamp(85px, 10vw, 135px);
+      filter: drop-shadow(0 0 15px #47f3ff66)
+    }
+
+    .botname {
+      font: clamp(10px, 1.2vw, 15px) 'Press Start 2P';
+      margin-top: 8px
+    }
+
+    .botstate {
+      color: var(--cyan);
+      margin-top: 8px;
+      font-size: 15px
+    }
+
+    .historyframe {
+      height: 330px;
+      border: 2px solid var(--pink);
+      background: #1a1034e8;
+      overflow: auto;
+      padding: 6px
+    }
+
+    .historytable {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: clamp(11px, .95vw, 14px)
+    }
+
+    .historytable th {
+      text-align: left;
+      font-weight: normal;
+      border-bottom: 1px solid #6c357a;
+      padding: 8px 3px
+    }
+
+    .historytable td {
+      padding: 10px 3px;
+      border-bottom: 1px solid #38204e;
+      white-space: nowrap
+    }
+
+    .won {
+      color: var(--cyan)
+    }
+
+    .lost {
+      color: var(--pink)
+    }
+
+    .draw {
+      color: var(--yellow)
+    }
+
+    .statsframe {
+      border: 2px solid var(--cyan);
+      padding: 13px 17px;
+      max-width: 800px;
+      background: #1a1034e8
+    }
+
+    .statsheading {
+      font-size: 15px;
+      margin-bottom: 10px
+    }
+
+    .dots {
+      display: flex;
+      gap: 9px;
+      flex-wrap: wrap;
+      margin: 8px 0
+    }
+
+    .dot {
+      width: 16px;
+      height: 16px;
+      background: #50305f
+    }
+
+    .dot.win {
+      background: var(--green);
+      box-shadow: 0 0 7px #35f16c66
+    }
+
+    .dot.loss {
+      background: var(--red);
+      box-shadow: 0 0 7px #ff385766
+    }
+
+    .dot.tie {
+      background: var(--yellow)
+    }
+
+    .bottom {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap
+    }
+
+    .bottom .arcade {
+      font-size: 11px;
+      padding: 15px 17px
+    }
+
+    .hint {
+      color: #b8b0d0
+    }
+
+    .endtitle {
+      font-size: clamp(21px, 4.8vw, 52px);
+      text-shadow: 5px 5px #4a2458, 8px 8px #070510
+    }
+
+    .endscore {
+      color: var(--cyan);
+      font-size: 19px;
+      line-height: 2
+    }
+
+    @media(max-width:950px) {
+      .grid {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .historypanel {
+        grid-column: 1/-1
+      }
+
+      .historyframe {
+        height: 230px
+      }
+
+      .head {
+        grid-template-columns: 1fr auto 1fr
+      }
+
+      .avatar {
+        width: 40px;
+        height: 40px;
+        font-size: 25px
+      }
+
+      .player {
+        padding: 6px
+      }
+
+      .score {
+        font-size: 14px
+      }
+    }
+
+    @media(max-width:620px) {
+      .screen {
+        padding: 12px
+      }
+
+      .head {
+        grid-template-columns: 1fr 1fr
+      }
+
+      .game-title {
+        grid-column: 1/-1;
+        grid-row: 1
+      }
+
+      .player {
+        grid-row: 2
+      }
+
+      .grid {
+        grid-template-columns: 1fr
+      }
+
+      .historypanel {
+        grid-column: auto
+      }
+
+      .frame {
+        height: 300px
+      }
+
+      .historyframe {
+        height: 230px
+      }
+
+      .character {
+        font-size: 70px
+      }
+
+      .robot {
+        font-size: 95px
+      }
+
+      .sponsors {
+        font-size: 14px
+      }
+
+      .dot {
+        width: 13px;
+        height: 13px
+      }
+
+      .dots {
+        gap: 6px
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <section id="intro" class="screen active">
+    <div>
+      <h1 class="title">ROCK, PAPER,<br>SCISSORS</h1>
+      <div class="shoot">SHOOT!</div>
+      <div class="cards">
+        <div class="iconcard">✊</div>
+        <div class="iconcard">✋</div>
+        <div class="iconcard">✌</div>
+      </div>
+      <p class="sub">Make your move, test your luck</p><button class="arcade" id="start">START ▶</button>
+    </div>
+    <div class="sponsors"><span>◉ Qiskit</span><span>⬡ IONQ</span></div>
+  </section>
+  <section id="game" class="screen">
+    <header class="head">
+      <div class="player">
+        <div class="avatar">🧑🏻‍🚀</div>
+        <div><strong>PLAYER 1</strong>
+          <div class="score">Score: <b id="ps">0</b></div>
+        </div>
+      </div>
+      <h1 class="game-title">QUANTUM ARCADE</h1>
+      <div class="player bot">
+        <div><strong>Q-BOT</strong>
+          <div class="score">Score: <b id="bs">0</b></div>
+        </div>
+        <div class="avatar">🤖</div>
+      </div>
+    </header>
+    <div class="grid">
+      <section>
+        <h2 class="section"><span class="cyan">01A /</span> PLAYER 1 CHARACTER</h2>
+        <div class="frame playerframe">
+          <div class="moves">
+            <div><button class="move" data-m="rock">✊</button>
+              <div class="move-label">ROCK</div>
+            </div>
+            <div><button class="move" data-m="paper">✋</button>
+              <div class="move-label">PAPER</div>
+            </div>
+            <div><button class="move" data-m="scissors">✌</button>
+              <div class="move-label">SCISSORS</div>
+            </div>
+          </div>
+          <div class="character">🧑🏻‍🚀</div>
+          <div class="prob">
+            <div class="cyan" style="font-size:24px">％</div>QUANTUM<br>PROBABILITY<div class="pct" id="pr">33%</div>
+            <div class="pct" id="pp">33%</div>
+            <div class="pct" id="pt">33%</div>
+          </div>
+          <div class="playerstatus">PLAYER 1<span id="state">READY</span></div>
+        </div>
+      </section>
+      <section>
+        <h2 class="section"><span class="cyan">01B /</span> Q-BOT OPPONENT</h2>
+        <div class="frame botframe">
+          <div class="robot">🤖</div>
+          <div class="botname">Q-BOT 3000</div>
+          <div class="botstate" id="botstate">ACTIVE / THINKING</div>
+        </div>
+      </section>
+      <section class="historypanel">
+        <h2 class="section"><span class="pink">04 /</span> ROUND HISTORY</h2>
+        <div class="historyframe">
+          <table class="historytable">
+            <thead>
+              <tr>
+                <th>ROUND</th>
+                <th>YOU vs Q-BOT</th>
+                <th>RESULT</th>
+              </tr>
+            </thead>
+            <tbody id="hist"></tbody>
+          </table>
+        </div>
+      </section>
+    </div>
+    <section>
+      <h2 class="section">STATS</h2>
+      <div class="statsframe">
+        <div class="statsheading">RECENT PERFORMANCE:</div>
+        <div class="dots" id="pdots"></div>
+        <div class="dots" id="bdots"></div>
+      </div>
+    </section>
+    <div class="bottom">
+      <div class="hint" id="roundlabel">ROUND 1 / 15 — Choose your move</div>
+      <div><button class="arcade" id="cameraToggle" style="font-size:10px;padding:12px 14px">CAMERA: OFF</button>
+        <button class="arcade" id="end">END GAME ▸</button></div>
+    </div>
+    <div id="integrationPanel"
+      style="border:1px solid #49305f;background:#160d30;padding:12px;margin-top:2px;font-size:13px">
+      <b style="color:var(--cyan)">INTEGRATION STATUS</b>
+      <span id="integrationStatus">Gesture model: not connected · Qiskit backend: demo mode</span>
+      <video id="gestureVideo" autoplay playsinline muted
+        style="display:none;width:180px;max-width:100%;margin-top:10px;border:1px solid var(--cyan)"></video>
+      <div style="margin-top:6px;color:#b8b0d0"></div>
+    </div>
+  </section>
+  <section id="ending" class="screen">
+    <h1 class="endtitle" id="endtitle">CONGRATULATIONS!<br>YOU WIN!</h1>
+    <div class="endscore" id="endscore"></div><button class="arcade" id="restart">RESTART ▶</button>
+  </section>
+  <script>
+    /*
+     * QUANTUM ARCADE — PUNTOS DE INTEGRACIÓN
+     * 1) Cámara + modelo de gestos.
+     * 2) Backend de Qiskit.
+     * 3) Reglas/estrategia del hackathon.
+     * 4) Interfaz: actualiza marcador, historial y Recent Performance.
+     */
+    (() => {
+      "use strict";
+      const CONFIG = {
+        TOTAL_ROUNDS: 15,
+        // UNIR- Completar
+        QUANTUM_API_URL: "",
+        // UNIR- Completar
+        GESTURE_API_URL: "",
+
+        USE_DEMO_OPPONENT: true
+      };
+
+      const MOVES = {
+        rock: { label: "ROCK", emoji: "✊", oneHot: "100" },
+        paper: { label: "PAPER", emoji: "✋", oneHot: "010" },
+        scissors: { label: "SCISSORS", emoji: "✌", oneHot: "001" }
+      };
+      const ORDER = ["rock", "paper", "scissors"];
+      let round = 0, playerScore = 0, botScore = 0;
+      let history = [], playerRecent = [], botRecent = [], previousPlayerMoves = [];
+      let cameraStream = null, gestureTimer = null, lastDetectedGesture = null;
+      const $ = id => document.getElementById(id);
+      let roundAudioContext = null;
+
+      function desbloquearAudioRonda() {
+        const AudioContextClass =
+          window.AudioContext || window.webkitAudioContext;
+
+        if (!AudioContextClass) return;
+
+        if (!roundAudioContext) {
+          roundAudioContext = new AudioContextClass();
+        }
+
+        if (roundAudioContext.state === "suspended") {
+          roundAudioContext.resume().catch(() => {});
+        }
+      }
+
+      function sonidoRonda() {
+        desbloquearAudioRonda();
+
+        const ctx = roundAudioContext;
+        if (!ctx || ctx.state !== "running") return;
+
+        const ahora = ctx.currentTime;
+        const tono = ctx.createOscillator();
+        const volumen = ctx.createGain();
+
+        // Sonido breve de estilo arcade.
+        tono.type = "square";
+        tono.frequency.setValueAtTime(740, ahora);
+        tono.frequency.exponentialRampToValueAtTime(
+          520, ahora + 0.085
+        );
+
+        volumen.gain.setValueAtTime(0.0001, ahora);
+        volumen.gain.exponentialRampToValueAtTime(
+          0.045, ahora + 0.008
+        );
+        volumen.gain.exponentialRampToValueAtTime(
+          0.0001, ahora + 0.11
+        );
+
+        tono.connect(volumen);
+        volumen.connect(ctx.destination);
+
+        tono.start(ahora);
+        tono.stop(ahora + 0.12);
+      }
+      function showScreen(id) {
+        document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+        $(id).classList.add("active");
+        window.scrollTo(0, 0);
+      }
+
+      // ===================== 1: MODELO DE GESTOS =====================
+      // Solo abre la cámara. 
+      function decodeOneHot(value) {
+        const normalized = String(value).replace(/[^01]/g, "");
+        if (normalized === "100") return "rock";
+        if (normalized === "010") return "paper";
+        if (normalized === "001") return "scissors";
+        return null;
+      }
+
+      async function startGestureRecognition() {
+        /*
+         * INSERTAR AQUÍ la inicialización del modelo 
+         */
+        if (!navigator.mediaDevices?.getUserMedia) {
+          setIntegrationStatus("Este navegador no permite cámara aquí. Usa localhost o HTTPS.");
+          return;
+        }
+        try {
+          cameraStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "user" }, audio: false });
+          $("gestureVideo").srcObject = cameraStream;
+          $("gestureVideo").style.display = "block";
+          $("cameraToggle").textContent = "CAMERA: ON";
+          setIntegrationStatus("Cámara activa; reconocimiento de gestos pendiente.");
+          // TODO [COMPAÑERO VISIÓN]: iniciar aquí con $("gestureVideo").
+        } catch (error) {
+          setIntegrationStatus("No se pudo abrir la cámara: " + (error.message || "permiso denegado"));
+        }
+      }
+
+      function onGestureDetected(gesture) {
+        // Punto de entrada para el módulo de visión.
+        const move = MOVES[gesture] ? gesture : decodeOneHot(gesture);
+        if (!move || move === lastDetectedGesture) return;
+        lastDetectedGesture = move;
+        play(move, "camera");
+        // que la mano volvió a una posición neutral y pueda aceptar otro gesto.
+      }
+      function rearmGestureInput() { lastDetectedGesture = null; }
+
+      function stopGestureRecognition() {
+        if (gestureTimer) { clearInterval(gestureTimer); gestureTimer = null; }
+        if (cameraStream) cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+        $("gestureVideo").srcObject = null;
+        $("gestureVideo").style.display = "none";
+        $("cameraToggle").textContent = "CAMERA: OFF";
+        setIntegrationStatus("Cámara apagada.");
+        rearmGestureInput();
+      }
+
+      // ===================== 2: BACKEND QISKIT =====================
+
+      async function requestQuantumMove(playerMove) {
+        if (CONFIG.USE_DEMO_OPPONENT || !CONFIG.QUANTUM_API_URL) {
+          return demoOpponentMove();
+        }
+        const response = await fetch(CONFIG.QUANTUM_API_URL, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            round: round + 1,
+            player_move: playerMove,
+            player_one_hot: MOVES[playerMove].oneHot,
+            previous_player_moves: previousPlayerMoves,
+            player_score: playerScore,
+            bot_score: botScore
+          })
+        });
+        if (!response.ok) throw new Error("Backend Qiskit respondió HTTP " + response.status);
+        const data = await response.json();
+        if (!MOVES[data.bot_move]) throw new Error("Respuesta Qiskit inválida: falta bot_move válido.");
+        return { ...data, bot_move: data.bot_move, source: data.source || "qiskit" };
+      }
+
+      // Sustituto temporal para poder probar la interfaz sin servidor.
+      function demoOpponentMove() {
+        const weights = ORDER.map(m => Math.max(1, 4 - previousPlayerMoves.filter(x => x === m).length));
+        let value = Math.random() * weights.reduce((a, b) => a + b, 0);
+        for (let i = 0; i < ORDER.length; i++) { value -= weights[i]; if (value <= 0) return { bot_move: ORDER[i], source: "demo" }; }
+        return { bot_move: ORDER[0], source: "demo" };
+      }
+
+      // =====================  3: REGLAS DE LA PARTIDA =====================
+      function judge(playerMove, botMove) {
+        if (playerMove === botMove) return "tie";
+        if ((playerMove === "rock" && botMove === "scissors") ||
+          (playerMove === "paper" && botMove === "rock") ||
+          (playerMove === "scissors" && botMove === "paper")) return "win";
+        return "loss";
+      }
+
+      async function play(playerMove, inputSource = "buttons") {
+        if (round >= CONFIG.TOTAL_ROUNDS || !MOVES[playerMove]) return;
+        
+        sonidoRonda(); // Un sonido por cada jugada aceptada.
+
+        document.querySelectorAll("[data-m]").forEach(
+          b => b.disabled = true
+        );
+
+        document.querySelectorAll("[data-m]").forEach(b => b.disabled = true);
+        $("botstate").textContent = "THINKING...";
+        $("state").textContent = "PROCESSING...";
+        let botData;
+        try {
+          botData = await requestQuantumMove(playerMove);
+        } catch (error) {
+          setIntegrationStatus("Error de Qiskit: " + error.message + " · Se usó rival demo para esta ronda.");
+          botData = demoOpponentMove();
+        }
+        const botMove = botData.bot_move;
+        const result = judge(playerMove, botMove);
+        round++;
+        previousPlayerMoves.push(playerMove);
+
+        if (result === "win") { playerScore++; playerRecent.push("win"); botRecent.push("loss"); }
+        else if (result === "loss") { botScore++; playerRecent.push("loss"); botRecent.push("win"); }
+        else { playerRecent.push("tie"); botRecent.push("tie"); }
+
+        history.unshift({
+          round, player_move: playerMove, player_one_hot: MOVES[playerMove].oneHot,
+          bot_move: botMove, result, input_source: inputSource,
+          backend: botData.source || "demo", strategy: botData.strategy_guess || null,
+          agreement: botData.agreement ?? null, betrayal: botData.betrayal ?? null
+        });
+
+        $("ps").textContent = playerScore; $("bs").textContent = botScore;
+        $("state").textContent = MOVES[playerMove].label + " / " + MOVES[playerMove].oneHot;
+        $("botstate").textContent = MOVES[botMove].label + " / " + MOVES[botMove].oneHot;
+        $("pr").textContent = playerMove === "rock" ? "100%" : "0%";
+        $("pp").textContent = playerMove === "paper" ? "100%" : "0%";
+        $("pt").textContent = playerMove === "scissors" ? "100%" : "0%";
+        document.querySelectorAll("[data-m]").forEach(b => {
+          b.disabled = false;
+          b.classList.toggle("selected", b.dataset.m === playerMove);
+        });
+        $("roundlabel").textContent = round < CONFIG.TOTAL_ROUNDS
+          ? `ROUND ${round + 1} / ${CONFIG.TOTAL_ROUNDS} — Choose your move`
+          : `ROUND ${CONFIG.TOTAL_ROUNDS} / ${CONFIG.TOTAL_ROUNDS} — MATCH COMPLETE`;
+        render();
+        if (round === CONFIG.TOTAL_ROUNDS) setTimeout(showEnding, 450);
+      }
+
+      // =====================  4: ESTRATEGIA / REGLAS EXTRA =====================
+      // Si el reto incluye cooperación, acuerdo, traición o adivinar la estrategia:
+
+      function render() {
+        $("hist").innerHTML = history.map(x => {
+          const label = x.result === "win" ? "YOU WIN" : x.result === "loss" ? "Q-Bot Wins" : "DRAW";
+          const cls = x.result === "win" ? "won" : x.result === "loss" ? "lost" : "draw";
+          return `<tr><td>ROUND ${String(x.round).padStart(2, "0")}</td><td>${MOVES[x.player_move].emoji} vs ${MOVES[x.bot_move].emoji}</td><td class="${cls}">${label}</td></tr>`;
+        }).join("");
+        const dots = arr => Array.from({ length: CONFIG.TOTAL_ROUNDS }, (_, i) =>
+          `<span class="dot ${arr[i] === "win" ? "win" : arr[i] === "loss" ? "loss" : arr[i] === "tie" ? "tie" : ""}" title="${arr[i] || "Ronda sin jugar"}"></span>`
+        ).join("");
+        $("pdots").innerHTML = dots(playerRecent);
+        $("bdots").innerHTML = dots(botRecent);
+      }
+
+      function showEnding() {
+        const title = playerScore > botScore ? "CONGRATULATIONS!<br>YOU WIN!"
+          : playerScore < botScore ? "BETTER LUCK<br>NEXT TIME" : "IT'S A TIE!<br>GOOD GAME!";
+        $("endtitle").innerHTML = title;
+        $("endscore").innerHTML = `PLAYER 1: ${playerScore}<br>Q-BOT: ${botScore}<br><small>${round} ROUNDS COMPLETE</small>`;
+        showScreen("ending");
+      }
+
+      function reset() {
+        stopGestureRecognition();
+        round = playerScore = botScore = 0;
+        history = []; playerRecent = []; botRecent = []; previousPlayerMoves = [];
+        $("ps").textContent = $("bs").textContent = "0";
+        $("state").textContent = "READY"; $("botstate").textContent = "ACTIVE / THINKING";
+        $("pr").textContent = $("pp").textContent = $("pt").textContent = "33%";
+        $("roundlabel").textContent = "ROUND 1 / 15 — Choose your move";
+        document.querySelectorAll("[data-m]").forEach(b => { b.classList.remove("selected"); b.disabled = false; });
+        render(); showScreen("intro");
+        setIntegrationStatus("Gesture model: not connected · Qiskit backend: demo mode");
+      }
+      function setIntegrationStatus(message) { $("integrationStatus").textContent = message; }
+
+      $("start").addEventListener("click", () => {
+        desbloquearAudioRonda();
+        showScreen("game");
+      });
+      document.querySelectorAll("[data-m]").forEach(b => b.addEventListener("click", () => play(b.dataset.m, "buttons")));
+      $("end").addEventListener("click", showEnding);
+      $("restart").addEventListener("click", reset);
+      $("cameraToggle").addEventListener("click", () => cameraStream ? stopGestureRecognition() : startGestureRecognition());
+
+      window.QuantumArcade = { onGestureDetected, rearmGestureInput, decodeOneHot, play };
+      render();
+    })();
+  </script>
+  <script src="./quantum_arcade_vqc.js"></script>
+</body>
+
+</html>

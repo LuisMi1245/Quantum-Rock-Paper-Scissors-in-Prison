@@ -1,0 +1,35 @@
+RESULTADO DE LA PRUEBA FINAL DEL VQC
+Piedra, papel o tijera
+=================================================================
+
+Archivos de entrenamiento: gestos.csv, gestos_test.csv
+Archivo de prueba final: gestos_test_3.csv
+Muestras de entrenamiento: 432
+Muestras de prueba final: 41
+Semilla: 0
+Simulador: local_exacto
+Sampler: QMLSampler
+Qubits: 5
+Alpha: 0.5
+Reps feature map: 1
+Reps ansatz: 1
+COBYLA maxiter: 150
+
+Accuracy: 0.951220
+F1 macro: 0.952099
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra     1.0000    0.8750    0.9333        16
+       papel     0.9286    1.0000    0.9630        13
+      tijera     0.9231    1.0000    0.9600        12
+
+    accuracy                         0.9512        41
+   macro avg     0.9505    0.9583    0.9521        41
+weighted avg     0.9548    0.9512    0.9505        41
+
+Matriz de confusión (filas = reales, columnas = predichas):
+[[14  1  1]
+ [ 0 13  0]
+ [ 0  0 12]]

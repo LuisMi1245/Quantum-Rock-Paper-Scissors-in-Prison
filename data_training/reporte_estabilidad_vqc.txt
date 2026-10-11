@@ -1,0 +1,312 @@
+=================================================================
+REPORTE DE ESTABILIDAD DEL VQC
+Piedra, papel o tijera
+=================================================================
+
+CONFIGURACIÓN DEL EXPERIMENTO
+-----------------------------------------------------------------
+Archivo de entrenamiento: gestos.csv
+Archivo de prueba: gestos_test.csv
+Muestras de entrenamiento: 362
+Muestras de prueba: 70
+Semillas: [42, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9]
+Número de qubits: 5
+Alpha: 0.5
+Reps feature map: 1
+Reps ansatz: 1
+COBYLA maxiter: 150
+Optimizador: COBYLA
+Feature map: ZZFeatureMap
+Ansatz: RealAmplitudes
+Sampler: StatevectorSampler
+Interpretación: indice % 3
+Forma de salida: 3 clases
+
+RESUMEN POR SEMILLA
+-----------------------------------------------------------------
+Seed | Accuracy | F1 macro | Acuerdo con seed 42
+  42 | 0.9714 | 0.9710 | 1.0000
+   0 | 1.0000 | 1.0000 | 0.9714
+   1 | 1.0000 | 1.0000 | 0.9714
+   2 | 1.0000 | 1.0000 | 0.9714
+   3 | 1.0000 | 1.0000 | 0.9714
+   4 | 1.0000 | 1.0000 | 0.9714
+   5 | 1.0000 | 1.0000 | 0.9714
+   6 | 1.0000 | 1.0000 | 0.9714
+   7 | 0.9857 | 0.9856 | 0.9857
+   8 | 1.0000 | 1.0000 | 0.9714
+   9 | 1.0000 | 1.0000 | 0.9714
+
+ESTADÍSTICAS GLOBALES
+-----------------------------------------------------------------
+Accuracy media: 0.996104
+Desviación estándar muestral del accuracy: 0.009238
+Accuracy mínimo: 0.971429
+Accuracy máximo: 1.000000
+F1 macro medio: 0.996052
+Desviación estándar muestral del F1 macro: 0.009371
+Acuerdo medio con las predicciones de seed 42: 0.975325
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 42
+=================================================================
+Accuracy: 0.971429
+F1 macro: 0.970988
+Acuerdo de predicciones con seed 42: 1.000000
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      0.929     1.000     0.963        26
+      tijera      1.000     0.905     0.950        21
+
+    accuracy                          0.971        70
+   macro avg      0.976     0.968     0.971        70
+weighted avg      0.973     0.971     0.971        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  2 19]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 0
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 1
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 2
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 3
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 4
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 5
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 6
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 7
+=================================================================
+Accuracy: 0.985714
+F1 macro: 0.985581
+Acuerdo de predicciones con seed 42: 0.985714
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      0.963     1.000     0.981        26
+      tijera      1.000     0.952     0.976        21
+
+    accuracy                          0.986        70
+   macro avg      0.988     0.984     0.986        70
+weighted avg      0.986     0.986     0.986        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  1 20]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 8
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]
+
+
+=================================================================
+RESULTADOS DETALLADOS: SEED = 9
+=================================================================
+Accuracy: 1.000000
+F1 macro: 1.000000
+Acuerdo de predicciones con seed 42: 0.971429
+
+Informe de clasificación:
+              precision    recall  f1-score   support
+
+      piedra      1.000     1.000     1.000        23
+       papel      1.000     1.000     1.000        26
+      tijera      1.000     1.000     1.000        21
+
+    accuracy                          1.000        70
+   macro avg      1.000     1.000     1.000        70
+weighted avg      1.000     1.000     1.000        70
+
+Matriz de confusión:
+[[23  0  0]
+ [ 0 26  0]
+ [ 0  0 21]]

@@ -1,0 +1,416 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Laboratorio VQC · Piedra, papel o tijera</title>
+  <style>
+    :root {
+      color-scheme: dark;
+      --bg: #0b1020; --surface: #111a2e; --surface-2: #17223a; --line: #293752;
+      --text: #f0f4ff; --muted: #9aa9c4; --cyan: #71e0d1; --violet: #a99bff;
+      --gold: #ffd27d; --green: #8ee4b4; --rose: #ff9eb6; --blue: #83b8ff;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: radial-gradient(ellipse at 12% 0%, #17244a 0, transparent 38%), var(--bg); color: var(--text); }
+    .page { max-width: 1500px; margin: 0 auto; padding: 22px; }
+    .topbar { display:flex; align-items:center; justify-content:space-between; gap:16px; margin-bottom:18px; }
+    .eyebrow { color:var(--cyan); font-size:11px; font-weight:800; letter-spacing:.16em; text-transform:uppercase; }
+    h1 { margin:5px 0 0; font-size:clamp(23px,3vw,34px); letter-spacing:-.04em; }
+    h2 { font-size:16px; margin:0; letter-spacing:-.015em; }
+    h3 { font-size:13px; margin:0 0 8px; color:#dfe8ff; }
+    p { margin:7px 0; color:var(--muted); line-height:1.5; font-size:13px; }
+    button { font:inherit; cursor:pointer; }
+    .pill, .btn { border:1px solid var(--line); border-radius:999px; padding:9px 13px; color:var(--text); background:#151f35; font-size:12px; font-weight:700; }
+    .btn.primary { background:var(--cyan); color:#081520; border-color:transparent; }
+    .btn:hover { filter:brightness(1.12); }
+    .status { display:inline-flex; align-items:center; gap:7px; border:1px solid var(--line); border-radius:999px; padding:7px 10px; color:var(--muted); font-size:11px; white-space:nowrap; }
+    .dot { width:7px; height:7px; display:inline-block; border-radius:50%; background:#78859b; }
+    .dot.live { background:var(--green); box-shadow:0 0 10px #8ee4b488; }
+    .metrics { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:10px; margin:16px 0; }
+    .metric, .card { background:linear-gradient(160deg, #141f35, #10182b); border:1px solid var(--line); border-radius:16px; }
+    .metric { padding:14px 16px; min-width:0; }
+    .metric-label { color:var(--muted); font-size:11px; }
+    .metric-value { font-size:22px; font-weight:800; margin-top:5px; overflow-wrap:anywhere; }
+    .metric-note { color:var(--muted); font-size:10px; margin-top:3px; }
+    .layout { display:grid; grid-template-columns:minmax(0,1.8fr) minmax(280px,1fr); gap:12px; align-items:start; }
+    .column { display:grid; gap:12px; min-width:0; }
+    .card { padding:16px; min-width:0; }
+    .card-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; margin-bottom:9px; }
+    .tag { display:inline-flex; align-items:center; border-radius:6px; padding:4px 7px; background:#202d47; color:var(--muted); font-size:10px; font-weight:700; }
+    .tag.cyan { color:var(--cyan); background:#14343b; }
+    .tag.violet { color:#c2b9ff; background:#2a254b; }
+    .tag.gold { color:var(--gold); background:#3b3021; }
+    .circuit-scroll { width:100%; overflow:auto; border:1px solid #26334c; background:#0a1120; border-radius:12px; padding:8px 6px; }
+    svg.circuit { display:block; max-width:none; }
+    .wire { stroke:#3a4862; stroke-width:1.5; }
+    .q-label { font-size:11px; fill:#8193b2; }
+    .gate { cursor:pointer; outline:none; }
+    .gate rect { fill:#192740; stroke:#526482; stroke-width:1.2; transition:fill .15s,stroke .15s,filter .15s; }
+    .gate text { fill:#eaf1ff; font-size:11px; font-weight:800; text-anchor:middle; dominant-baseline:middle; pointer-events:none; }
+    .gate .control { fill:#96a9ca; stroke:none; }
+    .gate .target { fill:none; stroke:#96a9ca; stroke-width:1.6; }
+    .gate.done rect { fill:#173a40; stroke:#54b6ad; }
+    .gate.current rect { fill:#594525; stroke:var(--gold); filter:drop-shadow(0 0 5px #ffd27d77); }
+    .gate.upcoming { opacity:.55; }
+    .gate.pair-line { stroke:#8193b2; stroke-width:1.6; }
+    .circuit-foot { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; color:var(--muted); font-size:10px; margin-top:8px; }
+    .legend { display:flex; flex-wrap:wrap; gap:12px; color:var(--muted); font-size:10px; margin-top:10px; }
+    .legend span { display:inline-flex; gap:5px; align-items:center; }
+    .swatch { width:9px; height:9px; border-radius:3px; display:inline-block; }
+    .stage-track { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:7px; margin:12px 0; }
+    .stage { border:1px solid var(--line); background:#10182a; padding:10px; border-radius:10px; opacity:.55; min-width:0; }
+    .stage.active { opacity:1; border-color:var(--gold); background:#302719; }
+    .stage-num { font-size:10px; color:var(--gold); font-weight:800; }
+    .stage-name { margin-top:4px; font-size:12px; font-weight:800; }
+    .stage-time { margin-top:3px; font-size:10px; color:var(--muted); }
+    .lesson { border-left:3px solid var(--violet); background:#191932; border-radius:0 10px 10px 0; padding:12px 14px; }
+    .lesson strong { font-size:12px; }
+    .lesson p { margin-bottom:0; }
+    .angles { display:grid; gap:10px; margin-top:15px; }
+    .angle-row { display:grid; grid-template-columns:72px minmax(50px,1fr) 56px; gap:10px; align-items:center; font-size:11px; }
+    .angle-label { color:#c8d4ec; }
+    .track { height:7px; border-radius:99px; background:#28334b; overflow:hidden; }
+    .fill { height:100%; width:0%; border-radius:99px; background:linear-gradient(90deg,var(--violet),var(--cyan)); transition:width .18s; }
+    .angle-value { text-align:right; color:var(--cyan); font-variant-numeric:tabular-nums; }
+    .class-row { display:grid; grid-template-columns:70px minmax(50px,1fr) 40px; gap:9px; align-items:center; margin:12px 0; font-size:11px; }
+    .class-name { font-weight:800; letter-spacing:.02em; }
+    .class-row.selected .class-name { color:var(--green); }
+    .class-row .fill { background:#5a6983; }
+    .class-row.selected .fill { background:linear-gradient(90deg,#2d9d92,var(--green)); }
+    .class-value { text-align:right; color:var(--muted); font-variant-numeric:tabular-nums; }
+    .readouts { display:grid; grid-template-columns:1fr 1fr; gap:9px; margin-top:13px; }
+    .readout { background:#0b1323; border:1px solid #273550; border-radius:10px; padding:11px; min-width:0; }
+    .readout-label { color:var(--muted); font-size:10px; }
+    .readout-value { font-weight:800; margin-top:5px; font-size:14px; overflow-wrap:anywhere; }
+    .weight-grid { display:grid; grid-template-columns:repeat(5,minmax(0,1fr)); gap:6px; margin-top:11px; }
+    .weight { padding:8px 4px; background:#0b1323; border:1px solid #293650; border-radius:8px; text-align:center; min-width:0; }
+    .weight small { display:block; color:var(--muted); font-size:9px; }
+    .weight b { display:block; margin-top:3px; font-size:11px; overflow-wrap:anywhere; font-variant-numeric:tabular-nums; }
+    .inspector { min-height:68px; padding:11px 12px; border-radius:10px; background:#0b1323; border:1px solid #273550; color:var(--muted); font-size:12px; line-height:1.5; margin-top:12px; }
+    .inspector strong { color:var(--text); }
+    details { border-top:1px solid var(--line); padding:11px 0; }
+    details:first-of-type { margin-top:8px; }
+    summary { cursor:pointer; font-weight:800; font-size:12px; }
+    details p { font-size:12px; }
+    .notice { color:#abbad2; background:#11192a; border:1px dashed #43516a; border-radius:10px; padding:12px; font-size:11px; line-height:1.5; }
+    .footer { padding:14px 2px 4px; color:#72819e; font-size:10px; line-height:1.5; }
+    .empty { color:var(--muted); font-size:12px; padding:12px 0; }
+    .hide { display:none !important; }
+    @media (max-width:950px) { .layout { grid-template-columns:1fr; } .metrics { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+    @media (max-width:550px) { .page { padding:12px; } .metrics { gap:7px; } .metric { padding:11px; } .metric-value { font-size:18px; } .stage-track { grid-template-columns:repeat(2,minmax(0,1fr)); } .readouts { grid-template-columns:1fr; } .topbar { align-items:flex-start; flex-direction:column; } }
+    body.embed .page { padding:14px; max-width:none; }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="topbar">
+      <div>
+        <div class="eyebrow">Quantum machine learning · guía interactiva</div>
+        <h1>Por dentro del VQC <span style="color:var(--cyan)">↗</span></h1>
+        <p>De cinco ángulos de la mano a una decisión de piedra, papel o tijera.</p>
+      </div>
+      <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+        <span class="status"><i id="connection-dot" class="dot"></i><span id="connection-text">Conectando con Python…</span></span>
+        <button id="play-tour" class="btn">Pausar recorrido</button>
+      </div>
+    </header>
+
+    <section class="metrics" aria-label="Resumen del modelo">
+      <div class="metric"><div class="metric-label">Qubits</div><div id="metric-qubits" class="metric-value">—</div><div class="metric-note">Registros cuánticos del circuito</div></div>
+      <div class="metric"><div class="metric-label">Puertas visibles</div><div id="metric-gates" class="metric-value">—</div><div class="metric-note">Feature map + ansatz</div></div>
+      <div class="metric"><div class="metric-label">Pesos aprendidos</div><div id="metric-weights" class="metric-value">—</div><div class="metric-note">Parámetros optimizados durante el entrenamiento</div></div>
+      <div class="metric"><div class="metric-label">Entrada actual</div><div id="metric-input" class="metric-value">Esperando</div><div class="metric-note">Cinco ángulos, en radianes</div></div>
+    </section>
+
+    <section class="layout">
+      <div class="column">
+        <article class="card">
+          <div class="card-head">
+            <div><div class="eyebrow">01 · Codificar la mano</div><h2>Mapa de características · ZZFeatureMap</h2><p>Los valores clásicos se convierten en parámetros de puertas cuánticas. Las interacciones ZZ codifican relaciones entre pares de características.</p></div>
+            <span class="tag cyan">Entrada → circuito</span>
+          </div>
+          <div class="circuit-scroll"><svg id="feature-circuit" class="circuit" role="img" aria-label="Circuito del mapa de características"></svg></div>
+          <div class="circuit-foot"><span id="feature-summary">Leyendo circuito real de Qiskit…</span><span>Haz clic en una puerta para aprender sobre ella.</span></div>
+          <div class="legend"><span><i class="swatch" style="background:#173a40;border:1px solid #54b6ad"></i>Puerta recorrida</span><span><i class="swatch" style="background:#594525;border:1px solid #ffd27d"></i>Etapa explicada ahora</span><span><i class="swatch" style="background:#192740;border:1px solid #526482"></i>Siguiente operación</span></div>
+          <div id="gate-inspector" class="inspector"><strong>Explora el circuito.</strong> Selecciona una puerta para ver qué significa. La disposición procede del circuito cargado en Qiskit.</div>
+        </article>
+
+        <article class="card">
+          <div class="card-head">
+            <div><div class="eyebrow">02 · Transformar la representación</div><h2>Ansatz variacional · RealAmplitudes</h2><p>El circuito contiene parámetros entrenables. El optimizador los ajustó para que la salida separe los gestos de entrenamiento.</p></div>
+            <span class="tag violet">Parámetros aprendidos</span>
+          </div>
+          <div class="circuit-scroll"><svg id="ansatz-circuit" class="circuit" role="img" aria-label="Circuito variacional RealAmplitudes"></svg></div>
+          <div class="circuit-foot"><span id="ansatz-summary">Leyendo circuito real de Qiskit…</span><span>Las líneas representan qubits; las puertas actúan sobre ellos.</span></div>
+          <h3 style="margin-top:16px">Vector de pesos aprendido</h3>
+          <p>Estos valores pertenecen al modelo guardado. No son probabilidades ni ángulos medidos de la mano.</p>
+          <div id="weights" class="weight-grid"><div class="empty">Esperando los parámetros del modelo…</div></div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">03 · Seguir el proceso</div><h2>Recorrido didáctico de una inferencia</h2><p>La animación guía la explicación mientras el panel recibe los datos actuales del clasificador.</p></div><span id="stage-badge" class="tag gold">Preparando</span></div>
+          <div class="stage-track">
+            <div class="stage" data-stage="0"><div class="stage-num">PASO 01</div><div class="stage-name">Entrada clásica</div><div class="stage-time">5 ángulos</div></div>
+            <div class="stage" data-stage="1"><div class="stage-num">PASO 02</div><div class="stage-name">Codificación</div><div class="stage-time">ZZFeatureMap</div></div>
+            <div class="stage" data-stage="2"><div class="stage-num">PASO 03</div><div class="stage-name">Circuito variacional</div><div class="stage-time">Pesos entrenados</div></div>
+            <div class="stage" data-stage="3"><div class="stage-num">PASO 04</div><div class="stage-name">Salida y etiqueta</div><div class="stage-time">Interpretación clásica</div></div>
+          </div>
+          <div class="lesson"><strong id="lesson-title">Preparando la explicación</strong><p id="lesson-body">El explorador está leyendo los circuitos y los parámetros del modelo que cargó Python.</p></div>
+          <p style="font-size:10px">La animación es una guía conceptual sincronizada con la inferencia en vivo; no es una medición del tiempo que tarda cada puerta en ejecutarse.</p>
+        </article>
+      </div>
+
+      <aside class="column">
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">Datos en vivo</div><h2>Entrada de MediaPipe</h2></div><span id="hand-tag" class="tag">Sin mano</span></div>
+          <p>Son los cinco ángulos que Python envía al VQC en este momento, no una estimación fabricada por la interfaz.</p>
+          <div id="angles" class="angles">
+            <div class="angle-row"><span class="angle-label">Pulgar</span><div class="track"><div class="fill"></div></div><span class="angle-value">—</span></div>
+            <div class="angle-row"><span class="angle-label">Índice</span><div class="track"><div class="fill"></div></div><span class="angle-value">—</span></div>
+            <div class="angle-row"><span class="angle-label">Medio</span><div class="track"><div class="fill"></div></div><span class="angle-value">—</span></div>
+            <div class="angle-row"><span class="angle-label">Anular</span><div class="track"><div class="fill"></div></div><span class="angle-value">—</span></div>
+            <div class="angle-row"><span class="angle-label">Meñique</span><div class="track"><div class="fill"></div></div><span class="angle-value">—</span></div>
+          </div>
+          <div class="readouts">
+            <div class="readout"><div class="readout-label">Inferencia instantánea</div><div id="instant-result" class="readout-value">—</div></div>
+            <div class="readout"><div class="readout-label">Resultado estabilizado</div><div id="stable-result" class="readout-value">Esperando…</div></div>
+            <div class="readout"><div class="readout-label">Votos coincidentes</div><div id="votes-result" class="readout-value">—</div></div>
+            <div class="readout"><div class="readout-label">Latencia informada</div><div id="latency-result" class="readout-value">No disponible</div></div>
+          </div>
+        </article>
+
+        <article class="card">
+          <div class="card-head"><div><div class="eyebrow">04 · Interpretar</div><h2>Decisión de clase</h2></div><span class="tag gold">Salida clásica</span></div>
+          <p>La predicción del fotograma no es lo mismo que la votación temporal. Las barras muestran votos del historial de webcam, no probabilidades cuánticas.</p>
+          <div id="vote-bars">
+            <div class="class-row"><span class="class-name">PIEDRA</span><div class="track"><div class="fill"></div></div><span class="class-value">—</span></div>
+            <div class="class-row"><span class="class-name">PAPEL</span><div class="track"><div class="fill"></div></div><span class="class-value">—</span></div>
+            <div class="class-row"><span class="class-name">TIJERA</span><div class="track"><div class="fill"></div></div><span class="class-value">—</span></div>
+          </div>
+          <div id="probability-note" class="notice">Las probabilidades por clase no se han enviado. El visualizador no las inventa; aquí se muestran los votos reales del filtro temporal cuando Python los proporciona.</div>
+          <div class="readout" style="margin-top:12px"><div class="readout-label">Regla de interpretación configurada</div><div id="interpret-rule" class="readout-value">índice % 3</div><p>El circuito no produce literalmente palabras como “piedra”. Una regla clásica agrupa las salidas y las asocia con las etiquetas del videojuego.</p></div>
+        </article>
+      </aside>
+    </section>
+
+    <section class="card" style="margin-top:12px">
+      <div class="eyebrow">Mini glosario</div><h2>Conceptos para entender lo que estás viendo</h2>
+      <details><summary>¿Qué es un PQC y qué lo convierte en un VQC?</summary><p>Un circuito cuántico parametrizado (PQC) contiene puertas que dependen de parámetros ajustables. En un clasificador cuántico variacional (VQC), parte de esos parámetros se aprende a partir de ejemplos etiquetados mediante un optimizador clásico que evalúa y ajusta el circuito.</p></details>
+      <details><summary>¿Qué representa un qubit?</summary><p>Es la unidad básica de información cuántica. A diferencia de un bit clásico, su estado puede ser una superposición de los estados base. La visualización de líneas no dibuja directamente el estado cuántico: indica dónde se aplican las operaciones.</p></details>
+      <details><summary>¿Qué significa entrelazar qubits?</summary><p>Una operación de dos qubits, como CX, puede crear correlaciones cuánticas que no se describen como estados independientes de cada qubit. En este modelo, el mapa ZZ incluye interacciones entre pares de características y RealAmplitudes incorpora puertas de entrelazamiento según su estructura real.</p></details>
+      <details><summary>¿Qué son el mapa de características y el ansatz?</summary><p>El mapa de características codifica los valores de entrada en el circuito. El ansatz es la familia de circuitos parametrizados que puede ajustarse durante el entrenamiento. Sus parámetros aprendidos quedan guardados en el modelo.</p></details>
+      <details><summary>¿El circuito se ejecuta puerta por puerta en esta animación?</summary><p>No. Python/Qiskit ejecuta la inferencia dentro de la llamada al clasificador. Esta interfaz toma la estructura auténtica de los circuitos y anima una explicación de sus etapas; no mide ni reproduce el tiempo interno de cada puerta. En la configuración compartida, el entrenamiento usa QMLSampler(shots=None), un simulador local de probabilidades exactas.</p></details>
+    </section>
+    <footer class="footer">Explorador local · los circuitos y pesos proceden del objeto VQC cargado en Python. La animación de etapas es pedagógica. No representa un estado cuántico ni una ejecución física de hardware.</footer>
+  </main>
+
+  <script>
+    (() => {
+      const params = new URLSearchParams(location.search);
+      if (location.pathname.startsWith('/embed') || params.get('embed') === '1') document.body.classList.add('embed');
+      const $ = (id) => document.getElementById(id);
+      let model = null, live = null;
+      let tourPaused = false;
+      const TOUR = [
+        {key:'input', duration:3200, title:'Paso 1 · Entrada clásica', body:'MediaPipe entrega cinco ángulos en radianes. Estos números son datos clásicos: todavía no son un estado cuántico.', badge:'Entrada'},
+        {key:'feature', duration:5500, title:'Paso 2 · Codificación de características', body:'ZZFeatureMap usa puertas parametrizadas para codificar los ángulos. Las interacciones de tipo ZZ incorporan relaciones entre características; por eso la entrada no se limita a cinco etiquetas directas.', badge:'Codificación'},
+        {key:'ansatz', duration:5500, title:'Paso 3 · Circuito variacional aprendido', body:'RealAmplitudes contiene rotaciones entrenables y operaciones de entrelazamiento. Los pesos mostrados vienen del modelo guardado y no se recalculan por cada nuevo gesto.', badge:'Variacional'},
+        {key:'output', duration:3800, title:'Paso 4 · Medición e interpretación', body:'El circuito genera resultados que Qiskit procesa como salida del clasificador. La regla interpret = índice % 3 asocia esas salidas con tres clases; el filtro de nueve fotogramas estabiliza la etiqueta de la webcam.', badge:'Salida'}
+      ];
+      const TOUR_TOTAL = TOUR.reduce((a, s) => a + s.duration, 0);
+      let tourStart = performance.now();
+
+      function gateInfo(name, parameters) {
+        const info = {
+          h: ['H · Hadamard', 'Prepara una superposición cuando actúa sobre |0⟩. Es una de las puertas usadas para iniciar la codificación de muchos mapas de características.'],
+          p: ['P · Rotación de fase', 'Aplica una fase dependiente de su parámetro. En el ZZFeatureMap, la fase depende de las características de entrada.'],
+          rz: ['RZ · Rotación alrededor de Z', 'Rota la fase del estado alrededor del eje Z de la esfera de Bloch. El ángulo que aparece en la puerta puede ser una expresión parametrizada.'],
+          ry: ['RY · Rotación alrededor de Y', 'Rota el estado alrededor del eje Y. En el ansatz, estos ángulos suelen ser parámetros entrenables ajustados durante el entrenamiento.'],
+          rx: ['RX · Rotación alrededor de X', 'Rota el estado alrededor del eje X. Su efecto depende del ángulo de la puerta y del estado sobre el que actúa.'],
+          cx: ['CX · NOT controlada', 'Operación de dos qubits: invierte el qubit objetivo cuando el qubit de control está en |1⟩. Puede crear entrelazamiento.'],
+          cz: ['CZ · Z controlada', 'Aplica una fase condicionada a los dos qubits. Es una puerta de dos qubits y puede generar entrelazamiento.'],
+          rzz: ['RZZ · Rotación ZZ', 'Implementa una interacción basada en Z⊗Z. En mapas ZZ ayuda a codificar relaciones entre pares de características.'],
+          measure: ['Medición', 'Convierte información del estado cuántico en un resultado clásico de medición. El backend o sampler procesa esos resultados para la salida del modelo.'],
+          swap: ['SWAP · Intercambio', 'Intercambia los estados de dos qubits. No es por sí sola una medición ni una etiqueta de clase.'],
+          x: ['X · NOT cuántica', 'Intercambia |0⟩ y |1⟩ en la base computacional; corresponde a una rotación de π alrededor de X.'],
+          z: ['Z · Fase', 'Cambia el signo de la amplitud de |1⟩ en la base computacional, sin intercambiar |0⟩ y |1⟩.']
+        };
+        const item = info[name] || [`Puerta ${name.toUpperCase()}`, 'Esta operación forma parte del circuito leído desde Qiskit. Su nombre y sus qubits son auténticos; consulta la documentación de Qiskit para el significado matemático específico.'];
+        const paramText = parameters && parameters.length ? ` Parámetro(s) del circuito: ${parameters.join(', ')}.` : '';
+        $('gate-inspector').innerHTML = `<strong>${escapeHtml(item[0])}</strong><br>${escapeHtml(item[1] + paramText)}`;
+      }
+      function escapeHtml(s) { return String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+
+      function svgEl(tag, attrs={}, text=null) {
+        const node = document.createElementNS('http://www.w3.org/2000/svg', tag);
+        for (const [k,v] of Object.entries(attrs)) node.setAttribute(k, v);
+        if (text !== null) node.textContent = text;
+        return node;
+      }
+      function renderCircuit(svgId, circuit) {
+        const svg = $(svgId); svg.innerHTML = '';
+        if (!circuit || !circuit.available || !circuit.num_qubits) {
+          svg.setAttribute('viewBox','0 0 800 110'); svg.setAttribute('width','800'); svg.setAttribute('height','110');
+          svg.appendChild(svgEl('text',{x:20,y:48,fill:'#9aa9c4','font-size':13},'El circuito no está disponible en el objeto VQC.'));
+          return;
+        }
+        const nq = circuit.num_qubits;
+        const maxCol = Math.max(0,...circuit.operations.map(o => o.column || 0));
+        const stepX = 54, xStart = 78, top = 32, rowH = 50;
+        const width = Math.max(780, xStart + (maxCol+1)*stepX + 35);
+        const height = top + (nq-1)*rowH + 48;
+        svg.setAttribute('viewBox',`0 0 ${width} ${height}`); svg.setAttribute('width',width); svg.setAttribute('height',height);
+        for (let q=0;q<nq;q++) {
+          const y = top + q*rowH;
+          svg.appendChild(svgEl('text',{x:14,y:y+4,class:'q-label'},`q${q}`));
+          svg.appendChild(svgEl('line',{x1:42,y1:y,x2:width-18,y2:y,class:'wire'}));
+        }
+        circuit.operations.forEach((op, idx) => {
+          const x = xStart + (op.column || 0)*stepX;
+          const qs = op.qubits || [];
+          if (!qs.length) return;
+          const ys = qs.map(q => top + q*rowH);
+          const name = String(op.name || 'op').toLowerCase();
+          const g = svgEl('g', {class:'gate upcoming', tabindex:0, role:'button', 'aria-label':`${name}; qubits ${qs.join(', ')}`, 'data-column':op.column || 0, 'data-name':name, 'data-params':(op.params || []).join(' | ')});
+          const title = svgEl('title',{},`${name.toUpperCase()} · qubits ${qs.join(', ')}${op.params && op.params.length ? ' · '+op.params.join(', ') : ''}`); g.appendChild(title);
+          if (qs.length===2 && ['cx','cnot'].includes(name)) {
+            g.appendChild(svgEl('line',{x1:x,y1:ys[0],x2:x,y2:ys[1],class:'pair-line'}));
+            g.appendChild(svgEl('circle',{cx:x,cy:ys[0],r:4.5,class:'control'}));
+            g.appendChild(svgEl('circle',{cx:x,cy:ys[1],r:9,class:'target'}));
+            g.appendChild(svgEl('line',{x1:x-5,y1:ys[1],x2:x+5,y2:ys[1],class:'target'}));
+            g.appendChild(svgEl('line',{x1:x,y1:ys[1]-5,x2:x,y2:ys[1]+5,class:'target'}));
+          } else if (qs.length===2 && name==='cz') {
+            g.appendChild(svgEl('line',{x1:x,y1:ys[0],x2:x,y2:ys[1],class:'pair-line'}));
+            ys.forEach(y=>g.appendChild(svgEl('circle',{cx:x,cy:y,r:4.5,class:'control'})));
+          } else if (qs.length>=2) {
+            g.appendChild(svgEl('line',{x1:x,y1:Math.min(...ys),x2:x,y2:Math.max(...ys),class:'pair-line'}));
+            const mid=(Math.min(...ys)+Math.max(...ys))/2;
+            const label=name.toUpperCase().slice(0,5);
+            g.appendChild(svgEl('rect',{x:x-20,y:mid-12,width:40,height:24,rx:6}));
+            g.appendChild(svgEl('text',{x,y:mid+0.5},label));
+            ys.forEach(y=>g.appendChild(svgEl('circle',{cx:x,cy:y,r:3.5,class:'control'})));
+          } else {
+            const label = name.toUpperCase().slice(0,5);
+            g.appendChild(svgEl('rect',{x:x-20,y:ys[0]-14,width:40,height:28,rx:6}));
+            g.appendChild(svgEl('text',{x,y:ys[0]+0.5},label));
+          }
+          g.addEventListener('click',()=>gateInfo(name,op.params || []));
+          g.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();gateInfo(name,op.params||[]);}});
+          svg.appendChild(g);
+        });
+        svg._maxColumn = maxCol;
+      }
+      function applyCircuitProgress(svgId, progress, isActive, forceDone=false) {
+        const svg = $(svgId), gates = [...svg.querySelectorAll('.gate')];
+        if (!gates.length) return;
+        const max = Math.max(0,...gates.map(g=>Number(g.dataset.column)||0));
+        const cursor = progress * (max + 1);
+        gates.forEach(g=>{
+          const col=Number(g.dataset.column)||0;
+          g.classList.remove('done','current','upcoming');
+          if (forceDone || (isActive && col < cursor-0.35)) g.classList.add('done');
+          else if (isActive && col <= cursor+0.15) g.classList.add('current');
+          else g.classList.add('upcoming');
+        });
+      }
+      function renderModel(m) {
+        model=m;
+        $('metric-qubits').textContent = m.num_qubits || '—';
+        const gates=(m.feature_map.operation_count||0)+(m.ansatz.operation_count||0);
+        $('metric-gates').textContent = gates || '—';
+        $('metric-weights').textContent = m.weight_count == null ? 'No disponible' : m.weight_count;
+        $('feature-summary').textContent = `${m.feature_map.operation_count} operaciones · ${m.feature_map.num_qubits} qubits · ${m.feature_map.num_parameters} parámetros de entrada`;
+        $('ansatz-summary').textContent = `${m.ansatz.operation_count} operaciones · ${m.ansatz.num_qubits} qubits · ${m.ansatz.num_parameters} parámetros simbólicos`;
+        $('interpret-rule').textContent = m.interpret_rule || 'No expuesta';
+        renderCircuit('feature-circuit',m.feature_map);
+        renderCircuit('ansatz-circuit',m.ansatz);
+        const weights=$('weights'); weights.innerHTML='';
+        if (!m.weights || !m.weights.length) {
+          weights.innerHTML='<div class="empty">Esta versión del objeto no expuso el vector de pesos a la interfaz. El circuito sí está disponible.</div>';
+        } else {
+          m.weights.forEach((val,i)=>{
+            const cell=document.createElement('div'); cell.className='weight';
+            cell.innerHTML=`<small>w<sub>${i}</sub></small><b>${Number(val).toFixed(3)}</b>`;
+            weights.appendChild(cell);
+          });
+        }
+      }
+      function renderLive(s) {
+        live=s;
+        const connected = Boolean(s && s.updated_at);
+        $('connection-dot').classList.toggle('live',connected);
+        $('connection-text').textContent = connected ? 'Conectado a Python' : 'Esperando datos';
+        const detected=Boolean(s.hand_detected);
+        $('hand-tag').textContent=detected?'Mano detectada':'Sin mano';
+        $('hand-tag').className='tag '+(detected?'cyan':'');
+        $('metric-input').textContent=detected?'5 ángulos':'Esperando';
+        const names=['Pulgar','Índice','Medio','Anular','Meñique'];
+        const rows=[...$('angles').querySelectorAll('.angle-row')];
+        rows.forEach((row,i)=>{
+          const angle=s.angles && s.angles.length>i ? Number(s.angles[i]) : null;
+          row.querySelector('.angle-value').textContent=angle==null?'—':`${angle.toFixed(3)} rad`;
+          row.querySelector('.fill').style.width=angle==null?'0%':`${Math.max(0,Math.min(100,angle/Math.PI*100))}%`;
+          row.querySelector('.angle-label').textContent=names[i];
+        });
+        $('instant-result').textContent=s.instant_label || '—';
+        $('stable-result').textContent=s.stable_label || (s.status_label || 'Esperando…');
+        $('votes-result').textContent=s.matching_votes==null?'—':`${s.matching_votes} votos`;
+        $('latency-result').textContent=s.latency_ms==null?'No disponible':`${Number(s.latency_ms).toFixed(1)} ms`;
+        const votes=s.votes_by_class || {};
+        const max=Math.max(1,...['PIEDRA','PAPEL','TIJERA'].map(n=>Number(votes[n]||0)));
+        [...$('vote-bars').querySelectorAll('.class-row')].forEach(row=>{
+          const name=row.querySelector('.class-name').textContent;
+          const count=Number(votes[name]||0);
+          row.classList.toggle('selected', name===s.stable_label);
+          row.querySelector('.fill').style.width=`${count/max*100}%`;
+          row.querySelector('.class-value').textContent=count;
+        });
+        if (s.probabilities && s.probabilities.length===3) {
+          const note=$('probability-note');
+          note.textContent='Probabilidades entregadas por Python: '+s.probabilities.map((p,i)=>`${['piedra','papel','tijera'][i]} ${(Number(p)*100).toFixed(1)}%`).join(' · ')+'. La interpretación exacta depende de la salida del sampler y de cómo se obtuvieron estos valores.';
+        } else {
+          $('probability-note').textContent='Las probabilidades por clase no se han enviado. El visualizador no las inventa; aquí se muestran los votos reales del filtro temporal cuando Python los proporciona.';
+        }
+      }
+      function tickTour() {
+        if (!tourPaused) {
+          const elapsed=(performance.now()-tourStart)%TOUR_TOTAL;
+          let acc=0, idx=0, local=0;
+          for (let i=0;i<TOUR.length;i++) { if (elapsed<acc+TOUR[i].duration) {idx=i;local=(elapsed-acc)/TOUR[i].duration;break;} acc+=TOUR[i].duration; }
+          const step=TOUR[idx];
+          document.querySelectorAll('.stage').forEach((el,i)=>el.classList.toggle('active',i===idx));
+          $('stage-badge').textContent=step.badge;
+          $('lesson-title').textContent=step.title;
+          $('lesson-body').textContent=step.body;
+          applyCircuitProgress('feature-circuit',local,idx===1,idx>1);
+          applyCircuitProgress('ansatz-circuit',local,idx===2,idx>2);
+        }
+        requestAnimationFrame(tickTour);
+      }
+      $('play-tour').addEventListener('click',()=>{
+        tourPaused=!tourPaused;
+        $('play-tour').textContent=tourPaused?'Reanudar recorrido':'Pausar recorrido';
+      });
+      async function fetchJSON(path) {
+        const response=await fetch(path,{cache:'no-store'});
+        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        return response.json();
+      }
+      async function pollState() {
+        try { const s=await fetchJSON('/api/state'); renderLive(s); }
+        catch (_err) { $('connection-dot').classList.remove('live'); $('connection-text').textContent='Sin conexión con Python'; }
+      }
+      async function init() {
+        try { const m=await fetchJSON('/api/model'); renderModel(m); }
+        catch (_err) { $('connection-text').textContent='Abre esta página desde el servidor Python'; }
+        await pollState();
+        setInterval(pollState,300);
+        requestAnimationFrame(tickTour);
+      }
+      init();
+    })();
+  </script>
+</body>
+</html>
