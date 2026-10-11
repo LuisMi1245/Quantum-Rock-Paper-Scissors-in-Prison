@@ -1,0 +1,9 @@
+mediapipe==1.1.0
+numpy==2.5.4
+opencv_contrib_python==5.0.0.93
+opencv_python==5.0.0.93
+pandas==3.0.6
+qiskit==2.5.2
+qiskit_aer==0.17.2
+qiskit_machine_learning==0.9.1
+scikit_learn==1.9.1
